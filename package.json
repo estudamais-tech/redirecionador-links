@@ -12,6 +12,7 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/main.ts"
   },
   "dependencies": {
+    "dotenv": "^17.2.0",
     "express": "^5.1.0"
   }
 }

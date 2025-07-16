@@ -2,11 +2,10 @@ import { resolve } from 'path';
 import { DestinationModel } from '../../models/Destination';
 import { readFile } from 'fs/promises';
 
-const ROOT_DIR = process.cwd();
-
 const JSON_LINKS_FILE_PATH = resolve(
-  ROOT_DIR,
-  'src',
+  __dirname,
+  '..',
+  '..',
   'db',
   'seed',
   'destinations.json',
@@ -14,9 +13,14 @@ const JSON_LINKS_FILE_PATH = resolve(
 
 export class JsonLinkRepo {
   async readFromDisk(): Promise<DestinationModel[]> {
-    const jsonContent = await readFile(JSON_LINKS_FILE_PATH, 'utf-8');
-    const parsedJson = JSON.parse(jsonContent);
-    return parsedJson;
+    try {
+      console.log(`[Repo] Lendo os arquivos de ${JSON_LINKS_FILE_PATH}`);
+      const jsonContent = await readFile(JSON_LINKS_FILE_PATH, 'utf-8');
+      return JSON.parse(jsonContent);
+    } catch (e) {
+      console.error('[Repo] Falha ao ler ou parsear o arquivo JSON', e);
+      throw new Error('Não foi possível carregar os dados JSON');
+    }
   }
 
   async findAll(): Promise<DestinationModel[]> {
@@ -29,15 +33,9 @@ export class JsonLinkRepo {
     return links.filter(link => link.isActive);
   }
 
-  async findByName(name: string): Promise<DestinationModel> {
+  async findByName(name: string): Promise<DestinationModel | null> {
     const links = await this.findAllPublic();
-    const link = links.find(link => link.name === name);
-
-    if (!link) {
-      throw new Error('Nome do link não encontrado');
-    }
-
-    return link;
+    return links.find(link => link.name === name) || null;
   }
 }
 
