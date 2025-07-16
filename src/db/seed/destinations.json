@@ -1,17 +1,20 @@
-{
-  "cloudSkillBoost": {
+[
+  {
+    "name": "cloudSkillBoost",
     "url": "https://www.cloudskillsboost.google",
     "description": "Plataforma de aprendizado para cloud e IA da Google.",
     "isActive": true
   },
-  "ghsdp": {
+  {
+    "name": "ghsdp",
     "url": "https://education.github.com/pack",
     "description": "Plataforma de beneficios para estudantes do GitHub",
     "isActive": true
   },
-  "awsTraining": {
+  {
+    "name": "awsTraining",
     "url": "https://aws.amazon.com/pt/training/",
     "description": "Plataforma de aprendizado da AWS",
     "isActive": false
   }
-}
+]
