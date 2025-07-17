@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 import { getUrlByName } from './services/destinationService';
 
 const app = express();
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 3001;
 
 //Rota de direcionamento
@@ -19,6 +20,7 @@ app.get('/go/:destinationName', async (req: Request, res: Response) => {
       // lógica de log do click viria aqui
       return res.redirect(302, targetUrl);
     } else {
+      //FUTURAMENTE REDIRECIONAR PARA 404 PADRÃO DA PLATAFORMA
       console.warn(
         `[Route] Destino "${destinationName}" não encontrado. Redirecionando para fallback.`,
       );
