@@ -5,7 +5,7 @@ import { logClick } from './services/loggingService';
 
 const app = express();
 app.set('trust proxy', true);
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 //Rota de direcionamento
 app.get('/go/:destinationName', async (req: Request, res: Response) => {

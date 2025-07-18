@@ -1,0 +1,15 @@
+services:
+  redirector-api:
+    build:
+      # Aponta para o Dockerfile no diretório atual
+      context: .
+      # Especifica qual estágio do Dockerfile usar
+      target: development
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+      - ./src/db/seed/destinations.json:/app/src/db/seed/destinations.json
+      - ./clicks.log:/app/clicks.log
