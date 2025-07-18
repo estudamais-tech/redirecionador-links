@@ -1,4 +1,4 @@
-# API de Redirecionamento de Links - EstudaMais.tech
+# API de Redirecionamento de Links - EstudaMais.tech v1.0.0
 
 Um microsserviço interno, construído em Node.js e TypeScript, para gerenciar e
 rastrear cliques em links externos da plataforma EstudaMais.tech.
