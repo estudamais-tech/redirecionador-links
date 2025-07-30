@@ -9,3 +9,11 @@ export async function getUrlByName(name: string): Promise<string | null> {
 
   return destination ? destination.link_url : null;
 }
+
+export async function getIdByName(name: string): Promise<string | null> {
+  console.log(`[Service] buscando a ID do nome: ${name}`);
+
+  const destination = await linkRepo.findByName(name);
+
+  return destination ? destination.id : null;
+}

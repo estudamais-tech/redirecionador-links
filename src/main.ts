@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
-import { getUrlByName } from './services/destinationService';
+import { getIdByName, getUrlByName } from './services/destinationService';
 import { logClick } from './services/loggingService';
 
 const app = express();
@@ -15,13 +15,13 @@ app.get('/go/:destinationName', async (req: Request, res: Response) => {
     console.log(`[Route] Recebida requisição para: ${destinationName}`);
     //serviço para obtenção da url pelo nome
     const targetUrl = await getUrlByName(destinationName);
+    const urlId = await getIdByName(destinationName);
 
     if (targetUrl) {
       console.log(`[Route] URL encontrada: ${targetUrl}. Redirecionando...`);
       // Chama o log. É async, mas não precisa esperar (fire-and-forget)
       logClick({
-        destination: destinationName,
-        targetUrl: targetUrl,
+        linkId: urlId,
         ip: userIp,
       });
       return res.redirect(302, targetUrl);
