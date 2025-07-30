@@ -38,13 +38,12 @@ organizar o tráfego externo da plataforma.
 |-- /dist/                     # Código JavaScript compilado (para produção)
 |-- /src/
 |   |-- /db/
-|   |   |-- /seed/
-|   |   |   |-- destinations.json  # Arquivo com os links de destino
-|   |-- /models/
-|   |   |-- Destination.ts       # Modelo de dados para os destinos
+|   |   |-- /supabase/
+|   |   |   |-- admin-client.ts
+|   |   |   |-- supabase-client.ts
 |   |-- /repo/
 |   |   |-- links/
-|   |   |   |-- json-user-repo.ts  # Lógica para ler o destinations.json
+|   |   |   |-- supabase-user-repo.ts  # Lógica para ler o banco de dados
 |   |-- /services/
 |   |   |-- destinationService.ts  # Lógica para obter a URL de um destino
 |   |   |-- loggingService.ts      # Lógica para registrar os cliques
@@ -54,8 +53,6 @@ organizar o tráfego externo da plataforma.
 |
 |-- .env                       # Arquivo com variáveis de ambiente (local)
 |-- .env.example               # Exemplo de arquivo .env
-|-- clicks.log                 # Arquivo onde os cliques são registrados
-|-- analytics.js               # Script para analisar o clicks.log
 |-- package.json
 |-- tsconfig.json
 |-- README.md
@@ -74,33 +71,75 @@ Com o Docker, o processo de configuração do ambiente é simplificado para um
 - **[Docker Compose](https://docs.docker.com/compose/install/)** (geralmente já
   vem com o Docker Desktop)
 
-### Instalação e Execução
+### Configuração do Projeto
 
-1.  Clone o repositório:
+Siga estes passos para configurar o ambiente de desenvolvimento após clonar o
+projeto.
+
+1.  **Instale as Dependências do Projeto** Navegue até a raiz do projeto no seu
+    terminal e execute o comando para instalar todos os pacotes necessários.
+
     ```bash
-    git clone <url-do-seu-repositorio>
+    npm install
     ```
-2.  Navegue até a pasta do projeto:
+
+2.  **Crie seu Projeto na Supabase**
+
+    - Vá para [supabase.com](https://supabase.com) e crie uma nova organização e
+      um novo projeto.
+    - Guarde bem a **senha do seu banco de dados**, pois ela será necessária.
+
+3.  **Configure o Schema do Banco de Dados**
+
+    - No painel do seu projeto Supabase, encontre o **SQL Editor**.
+    - Execute os scripts SQL necessários para criar as tabelas `links` e
+      `clicks`, incluindo colunas, chaves primárias e chaves estrangeiras.
+
+4.  **Configure as Políticas de Segurança (RLS)**
+
+    - Para cada tabela criada (`links` e `clicks`), vá até a seção
+      **Authentication > Policies**.
+    - Habilite o **Row Level Security (RLS)** e crie as políticas de acesso
+      necessárias (por exemplo, permitir `SELECT` público na tabela `links` e
+      bloquear todas as ações na tabela `clicks`).
+
+5.  **Configure as Variáveis de Ambiente**
+
+    - Crie um arquivo chamado `.env` na raiz do projeto. Você pode copiar o
+      exemplo:
+      ```bash
+      cp .env.example .env
+      ```
+    - Vá para **Project Settings > API** no seu painel Supabase.
+    - Copie os seguintes valores e cole-os no seu arquivo `.env`:
+      - `SUPABASE_URL` (Project URL)
+      - `SUPABASE_API` (a chave `anon` `public`)
+      - `SUPABASE_SERVICE_KEY` (a chave `service_role` `secret`)
+    - Defina também um valor secreto para o `IP_HASH_SALT`.
+
+6.  **Sincronize os Tipos do TypeScript**
+
+    - Para que seu código TypeScript conheça a estrutura do seu banco de dados,
+      rode os seguintes comandos no terminal:
+
     ```bash
-    cd redirecionador-links
+    # Faz o login na sua conta Supabase (só precisa na primeira vez)
+    npx supabase login
+
+    # Liga esta pasta local com seu projeto na nuvem (substitua <project-ref>)
+    npx supabase link --project-ref <seu-project-ref>
+
+    # Gera o arquivo de tipos
+    npx supabase gen types typescript --linked > src/types/supabase.ts
     ```
-3.  Crie seu arquivo de ambiente `.env` a partir do exemplo e defina sua
-    `IP_HASH_SALT`:
-    ```bash
-    cp .env.example .env
-    # Agora edite o arquivo .env com seu editor preferido
-    ```
-4.  Suba o container com Docker Compose. O `--build` é necessário na primeira
-    vez.
+
+7.  **Inicie o Ambiente Docker**
+    - Com tudo configurado, inicie a aplicação com o Docker Compose:
     ```bash
     docker-compose up --build
     ```
-
-E é só! O servidor estará disponível em `http://localhost:3000`. O Nodemon está
-funcionando dentro do container e irá reiniciar o servidor a cada alteração que
-você salvar nos arquivos.
-
-Para parar o serviço, pressione `Ctrl + C` no terminal.
+    Sua API agora está rodando localmente e conectada ao seu banco de dados na
+    Supabase.
 
 ## Uso
 
@@ -135,18 +174,8 @@ ferramenta como o `curl` no terminal.
 
 ## Gerenciando Destinos
 
-Para adicionar, editar ou remover um link de redirecionamento, modifique o
-arquivo `src/db/seed/destinations.json`. A estrutura para cada destino é a
-seguinte:
-
-```json
-{
-  "name": "nome-unico-do-destino",
-  "url": "[https://link.externo.completo.com](https://link.externo.completo.com)",
-  "description": "Uma breve descrição do link.",
-  "isActive": true
-}
-```
+Para gerenciar os links, acesse o Table Editor no painel da sua aplicação na
+Supabase e edite as linhas da tabela links diretamente.
 
 - `name`: O identificador que será usado na URL (`/go/<name>`).
 - `url`: O link final para onde o usuário será redirecionado.
@@ -158,30 +187,13 @@ seguinte:
 
 ## Análise de Métricas
 
-Todos os cliques bem-sucedidos são registrados no arquivo `clicks.log` na raiz
-do projeto. Cada linha do arquivo é um objeto JSON (formato JSONL) com os
-detalhes do evento.
+Os dados de cliques são armazenados na tabela log_data. Para análises,
+conecte-se ao seu banco de dados (usando a interface da Supabase ou um cliente
+de banco de dados como DBeaver/TablePlus) e execute consultas SQL.
 
-Para analisar esses dados, use o script `analytics.js`.
+Exemplo: Para contar quantos IPs únicos foram redirecionados para ghsdp:
 
-### Como usar o Script de Análise
+SQL
 
-Execute o script via terminal, passando o `name` do destino que você deseja
-analisar como argumento.
-
-**Exemplo:** Para contar quantos IPs únicos foram redirecionados para `ghsdp`:
-
-```bash
-node analytics.js ghsdp
-```
-
-**Saída Esperada:**
-
-```
-Analisando cliques para o destino: "ghsdp"...
-
---- Análise Concluída ---
-Total de cliques para "ghsdp": 25
-Total de visitantes únicos (IPs únicos) para "ghsdp": 8
-------------------------
-```
+SELECT COUNT(DISTINCT ip_hash) FROM log_data JOIN links ON log_data.link_id =
+links.id WHERE links.link_name = 'ghsdp';
