@@ -18,7 +18,7 @@ app.get('/go/:destinationName', async (req: Request, res: Response) => {
     const urlId = await getIdByName(destinationName);
 
     if (targetUrl) {
-      //Evita que log o prefetch na db
+      //Evita que log o prefetch na db, ainda precisa corrigir no frontend, é uma gambiarra por hora
       const isPrefetch = req.headers['sec-purpose'] === 'prefetch';
 
       if (isPrefetch) {
