@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
-import { getUrlByName } from './services/destinationService';
+import { getIdByName, getUrlByName } from './services/destinationService';
 import { logClick } from './services/loggingService';
 
 const app = express();
@@ -13,17 +13,30 @@ app.get('/go/:destinationName', async (req: Request, res: Response) => {
   const userIp = req.ip || 'IP desconhecido';
   try {
     console.log(`[Route] Recebida requisição para: ${destinationName}`);
-    //serviço para obtenção da url pelo nome
+    //serviço para obtenção da url e id pelo nome
     const targetUrl = await getUrlByName(destinationName);
+    const urlId = await getIdByName(destinationName);
 
     if (targetUrl) {
-      console.log(`[Route] URL encontrada: ${targetUrl}. Redirecionando...`);
-      // Chama o log. É async, mas não precisa esperar (fire-and-forget)
-      logClick({
-        destination: destinationName,
-        targetUrl: targetUrl,
-        ip: userIp,
-      });
+      //Evita que log o prefetch na db, ainda precisa corrigir no frontend, é uma gambiarra por hora
+      const isPrefetch = req.headers['sec-purpose'] === 'prefetch';
+
+      if (isPrefetch) {
+        // Se for um prefetch, nós logamos no console para saber que aconteceu,
+        // mas NÃO chamamos o serviço para registrar no banco de dados.
+        console.log(
+          `[Prefetch] Requisição de prefetch detectada para: ${destinationName}. Clique não será registrado.`,
+        );
+      } else {
+        // Se for uma requisição normal (clique ou Enter), registramos o clique.
+        console.log(`[Route] URL encontrada: ${targetUrl}. Redirecionando...`);
+        // Chama o log. É async, mas não precisa esperar (fire-and-forget)
+        logClick({
+          linkId: urlId,
+          ip: userIp,
+        });
+      }
+
       return res.redirect(302, targetUrl);
     } else {
       //FUTURAMENTE REDIRECIONAR PARA 404 PADRÃO DA PLATAFORMA

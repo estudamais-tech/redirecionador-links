@@ -1,37 +1,26 @@
-import { appendFile } from 'fs/promises';
-import { resolve } from 'path';
 import { createIpHash } from '../utils/hash';
+import { supabaseAdmin } from '../db/supabase/admin-client';
+import { Database } from '../types/supabase';
 
-const LOG_PATH_FILE = resolve(__dirname, '../../clicks.log');
-
-interface LogData {
-  timestamp: string;
-  destination: string;
-  targetUrl: string;
-  ipHash: string;
-}
+type ClickInsert = Database['public']['Tables']['log_data']['Insert'];
 
 interface ClickInput {
-  destination: string;
-  targetUrl: string;
+  linkId: string | null; // ID do link clicado
   ip: string; // IP bruto do requisitante
 }
 
 export async function logClick(data: ClickInput): Promise<void> {
-  const logEntry: LogData = {
-    timestamp: new Date().toISOString(),
-    destination: data.destination,
-    targetUrl: data.targetUrl,
-    ipHash: createIpHash(data.ip), // Gera o hash aqui
+  const ipHash = createIpHash(data.ip);
+  const newClickData: ClickInsert = {
+    link_id: data.linkId,
+    ip_hash: ipHash,
   };
-
-  const logLine = JSON.stringify(logEntry) + '\n';
-
   try {
-    await appendFile(LOG_PATH_FILE, logLine);
+    console.log('[LoggingService] Inserindo o link na base de dados...');
+    await supabaseAdmin.from('log_data').insert(newClickData);
   } catch (error) {
     console.error(
-      '[LoggingService] Falha ao escrever no arquivo de log:',
+      '[LoggingService] Falha ao escrever na base de dados:',
       error,
       // Não da throw no erro pra não quebrar o redirecionamento
     );

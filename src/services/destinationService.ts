@@ -1,11 +1,19 @@
-import { JsonLinkRepo } from '../repo/links/json-user-repo';
+import { supabaseUserRepo } from '../repo/links/supabase-user-repo';
 
-const linkRepo = new JsonLinkRepo();
+const linkRepo = new supabaseUserRepo();
 
 export async function getUrlByName(name: string): Promise<string | null> {
   console.log(`[Service] buscando a url do nome: ${name}`);
 
   const destination = await linkRepo.findByName(name);
 
-  return destination ? destination.url : null;
+  return destination ? destination.link_url : null;
+}
+
+export async function getIdByName(name: string): Promise<string | null> {
+  console.log(`[Service] buscando a ID do nome: ${name}`);
+
+  const destination = await linkRepo.findByName(name);
+
+  return destination ? destination.id : null;
 }

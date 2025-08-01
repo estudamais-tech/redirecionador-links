@@ -3,6 +3,7 @@
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.14",
     "nodemon": "^3.1.10",
+    "supabase": "^2.33.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
@@ -12,6 +13,7 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/main.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.53.0",
     "dotenv": "^17.2.0",
     "express": "^5.1.0"
   }

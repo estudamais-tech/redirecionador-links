@@ -11,5 +11,3 @@ services:
       - .env
     volumes:
       - ./src:/app/src
-      - ./src/db/seed/destinations.json:/app/src/db/seed/destinations.json
-      - ./clicks.log:/app/clicks.log
